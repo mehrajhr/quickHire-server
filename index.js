@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 const app = express();
@@ -28,10 +28,23 @@ async function run() {
 
     const db = client.db('quickhire');
     const jobsCollection = db.collection('jobs');
+    const applicationCollection = db.collection('application');
 
-    app.get('/jobs', async(req,res) =>{
+    app.get('/api/jobs', async(req,res) =>{
         const result = await jobsCollection.find().toArray();
         res.send(result);
+    })
+
+    app.get('/api/jobs/:id', async(req,res) =>{
+      const jobId = req.params;
+      const result = await jobsCollection.findOne({_id : new ObjectId(jobId)});
+      res.send(result);
+    })
+
+    app.post('/api/applications', async(req,res) =>{
+      const newApplication = req.body;
+      const result = await applicationCollection.insertOne(newApplication);
+      res.send(result);
     })
 
 
