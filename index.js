@@ -42,6 +42,35 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/api/jobs", async (req, res) => {
+      const adminEmail = req.headers.admin_email;
+
+      try {
+        const requester = await usersCollection.findOne({ email: adminEmail });
+
+        if (!requester || requester.role !== "admin") {
+          return res
+            .status(403)
+            .json({ success: false, message: "Forbidden: Admins only" });
+        }
+
+        const newJob = {
+          ...req.body,
+          created_at: new Date(req.body.created_at),
+        };
+
+        const result = await jobsCollection.insertOne(newJob);
+
+        res.status(201).send({
+          success: true,
+          message: "Job added successfully",
+          jobId: result.insertedId,
+        });
+      } catch (error) {
+        res.status(500).send({ message: "Server error", error: error.message });
+      }
+    });
+
     app.post("/api/applications", async (req, res) => {
       const newApplication = req.body;
       const result = await applicationCollection.insertOne(newApplication);
