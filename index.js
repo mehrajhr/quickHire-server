@@ -71,6 +71,25 @@ async function run() {
       }
     });
 
+    app.delete("/api/jobs/:id", async (req, res) => {
+      const { id } = req.params;
+      const adminEmail = req.headers.admin_email;
+
+      try {
+        const user = await usersCollection.findOne({ email: adminEmail });
+        if (!user || user.role !== "admin") {
+          return res.status(403).send({ message: "Access Denied" });
+        }
+        
+        const result = await jobsCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+        res.send(result);
+      } catch (error) {
+        res.status(500).send({ message: "Error deleting job", error });
+      }
+    });
+
     app.post("/api/applications", async (req, res) => {
       const newApplication = req.body;
       const result = await applicationCollection.insertOne(newApplication);
